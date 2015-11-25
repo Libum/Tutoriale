@@ -108,7 +108,7 @@ I na koniec rzecz która powinna być na początku:
 
 Do obróbki xml'a najlepiej wykorzystywać pakiet xml2 napisany przez Hadley'a Wickhama. Samo nazwisko autora oznacza że pakiet jest bardzo prosty i przemyślany, a do tego prosty w obsłudze (jeżeli ktoś korzysta z R i nie jest zaznajomiony z dorobkiem Wickhama, powinien szybko nadrobić zaległości!).
 
-***I najważniejsze aktualna wersja xml2 znajdująca się na CRAN (0.1.2.9000) ma problem z kodowaniem polskich znaków - tzn. pojawiają się krzaczki - na szczęście w wersji deweloperskiej problem został już usunięty (ufff) - z tego też powodu - póki poprawki nie pojawią się na CRANie należy zainstalować wersję z githuba: ***
+***I najważniejsze - aktualna wersja xml2 znajdująca się na CRAN (0.1.2.9000) ma problem z kodowaniem polskich znaków - tzn. pojawiają się krzaczki - na szczęście w wersji deweloperskiej problem został już usunięty (ufff) - z tego też powodu - póki poprawki nie pojawią się na CRANie należy zainstalować wersję z githuba: ***
 
 ```{r, eval=FALSE}
 # Oczywiscie trzeba miec zainstalowane Rtools (na windowsie)
@@ -186,7 +186,7 @@ read_xml(xmlTextCor)
 
 # Podstawowe operacje
 
-By efektywnie korzystać z plików xml należy nauczyć się języka XPaht. Szerszy jego opis z przykładami można znaleźć między innymi na stronie \url{http://www.w3schools.com/xsl/xpath_syntax.asp}. W tym miejscu przedstawione zostanie jedynie podstawowe wyszukiwanie węzłów - jednak składnia XPath jest na tyle prosta, iż poznanie się na tyle by móc z niej efektywnie korzystać jest kwestią kilku minut.
+By efektywnie korzystać z plików xml należy nauczyć się języka XPaht. Szerszy jego opis z przykładami można znaleźć między innymi na stronie \url{http://www.w3schools.com/xsl/xpath_syntax.asp}. W tym miejscu przedstawione zostanie jedynie podstawowe wyszukiwanie węzłów - jednak składnia **XPath** jest na tyle prosta, iż poznanie się na tyle by móc z niej efektywnie korzystać jest kwestią kilku minut.
 
 ```{r}
 # Jak zawsze dane
@@ -217,7 +217,7 @@ xml_find_all(xmlAll, "/model/coefficients//coeff")
 xml_find_all(xmlAll, "/model/coefficients//rsqr")
 ```
 
-Po pobraniu zestawu węzłów można w zasadzie wykonać dwie główne operacje - pobrać wartość znajdującą się między tagami (przypadek $<tag>wartość</tag>$), lub pobrać wartość atrybutu (przypadek $<tag attr="wartość"/>$).
+Po pobraniu zestawu węzłów przy pomocy **xml_find_all** można w zasadzie wykonać dwie główne operacje - pobrać wartość znajdującą się między tagami (przypadek $<tag>wartość</tag>$), lub pobrać wartość atrybutu (przypadek $<tag attr="wartość"/>$).
 
 ```{r}
 # wartosc
@@ -256,7 +256,7 @@ wordcloud(sample(allWords,2000))
 
 ## Pobranie wszystkich czasowników:
 
-Pobranie wszystkich czasowników załatwić przy pomocy jednego zapytania xpath (tutaj też objawia się jego potęga):
+Pobranie wszystkich czasowników załatwić przy pomocy jednego zapytania **XPath** (tutaj też objawia się jego potęga):
 
 ```{r}
 library(xml2)
@@ -267,3 +267,16 @@ xml_text(praets) %>% head
 ```
 
 Najważniejszą częścią jest $tok[contains(lex/ctag, 'praet')]$, w którym $contains(lex/ctag, 'praet')$ jest warunkiem logicznym - sprawdzającym czy w węźle $lex/ctag$ znajduje się wartość $'praet'$. Jeżeli jest - wtedy z węzła $tok$ zwracany jest węzeł $orth$ zawierający bazowe słowo.
+
+# Podsumowanie
+
+Obróbka (a raczej czytanie) plików **xml** w R jest bardzo proste - w zasadzie w większości przypadków powinny wystarczyć 4 funkcje:
+
+- read_xml - służy do wczytania xml'a do R (uwaga na źle sformatowane pliki, bez korzenia!).
+- xml_find_all - wyciągnięcie przy pomocy zapytania **XPath** zestawu potrzebnych węzłów.
+- xml_text - pobranie wartości z węzłów zwróconych przez xml_find_all.
+- xml_attr - pobranie atrybutów z węzłów zwróconych przez xml_find_all.
+
+Jedyna trudnością może być konstrukcja odpowiedniego zapytania **XPath**, ale i to nie powinno stanowić wielkiego problemu.
+
+
