@@ -1,0 +1,245 @@
+---
+title: "Wprowadznie do xml'a w R"
+output: pdf_document
+author: Zygmunt Zawadzki z.zawadzki@erkakrakow.pl 
+---
+
+***W razie niejasności (coś nie zostało wytłumaczone wyastarczająco jasno, lub brak jest wystarczającej liczby odniesień do materiałów zewnętrznych, albo pominąłem istotny wątek) proszę pisać na podany wyżej adres e-mail. Postaram się w miarę możliwości wprowadzić potrzebne uzupełnienia (jeżeli ktoś ma ochotę może również coś dopisać - współautorzy mile widziani). Przepraszam za literówki:) ***
+
+# Wprowadzenie
+
+XML to rodzaj języka znaczników, bardzo podobny do html (w zasadzie jeżeli ktoś widział na oczy html, to z xmlem poczuje się jak w domu).
+
+Jedną z głównych zalet xml'a jest to, że jest dosyć łatwy do czytania zarówno dla człowieka, jak i dla maszyny. Poniżej znajduje się prosty przykład xml'a opisujący model regresji liniowej.
+
+```{r, eval=FALSE}
+<?xml version="1.0" encoding="UTF-8"?>
+<model>
+  <!-- Opis xml modelu regresji liniowej -->
+  <coefficients>
+    <coeff name="Intercept" value="20.53" sd="11.01" intercept="true"/>  
+    <coeff name="price" value="30.1" sd="2.06" signif="true"/>  
+  </coefficients>
+  <sd value="5.43"/>
+  <rsqr>0.45</rsqr>
+</model>
+```
+
+W zasadzie opierając się na samej informacji, że jest to regresja liniowa (oczywiście trzeba znać troszkę statystyki, żeby wiedzieć, że co to jest ta regresja:)), a nie znając budowy pliku xml, można łatwo domyślić się, że mamy do czynienia z modelem postaci:
+
+\begin{equation}
+y = 20.53 + 30.1 \cdot price,
+\end{equation}
+
+a $R^2$ tego modelu wynosi 0.45. 
+
+## Podstawowe określenia w xml'u.
+
+Po krótkiej prezentacji xml'a, czas na nieco definicji i nazewnictwa (imiona użyte w przykładach są przypadkowe!).
+
+Podstawowymi pojęciami w plikach xml są - rodzic i dziecko. Rodzic to element obejmujący dziecko(!) - tak jak w poniższym przykładzie:
+
+```{r, eval=FALSE}
+  <rodzic>
+    <dziecko name="Jaś"/>  
+    <dziecko name="Małgosia"/>  
+  </rodzic>
+```
+
+Przy czym rodzic może mieć wiele dzieci, natomiast dziecko, tylko jednego rodzica (tym świat xmla różni się od świata rzeczywistego...).
+
+Natomiast rodzic wszystkich rodziców to korzeć (ang. root) - i jako taki może być tylko jeden w dokumencie. Poniżej korzeniem jest $<dziadek>$ 
+
+```{r, eval=FALSE}
+<dziadek>
+  <rodzic name="Judyta">
+    <dziecko name="Jaś"/>  
+    <dziecko name="Małgosia"/>  
+  </rodzic>
+  <rodzic name="Grzegorz">
+    <dziecko name="Staś"/>  
+    <dziecko name="Małgosia"/>  
+  </rodzic>
+</dziadek>
+```
+
+Próba pracy z xmlem zawierającym wiele korzeni oznacza, że ktoś mógł źle sformatować ów plik, a skutkować to będzie komplikacjami przy użyciu narzędzi do pracy z xmlami (najprawdopodobniej w ogóle nie uda się nam wczytać takiego pliku, ale do tego tematu wrócimy przy wczytywaniu plików xml do R). Poniżej niepoprawnie sformatowany plik xml:
+
+```{r, eval=FALSE}
+<!-- Taki xml jest niepoprawny - są w nim dwa korzenie! -->
+<rodzic name="Judyta">
+  <dziecko name="Jaś"/>  
+  <dziecko name="Małgosia"/>  
+</rodzic>
+<rodzic name="Grzegorz">
+  <dziecko name="Staś"/>  
+  <dziecko name="Małgosia"/>  
+</rodzic>
+```
+
+
+
+
+## Wczytujemy xml'a do R 
+
+Do obróbki xml'a najlepiej wykorzystywać pakiet xml2 napisany przez Hadley'a Wickhama. Samo nazwisko autora oznacza że pakiet jest bardzo prosty i przemyślany, a do tego prosty w obsłudze (jeżeli ktoś korzysta z R i nie jest zaznajomiony z dorobkiem Wickhama, powinien szybko nadrobić zaległości!).
+
+***I najważniejsze aktualna wersja xml2 znajdująca się na CRAN (0.1.2.9000) ma problem z kodowaniem polskich znaków - tzn. pojawiają się krzaczki - na szczęście w wersji deweloperskiej problem został już usunięty (ufff) - z tego też powodu - póki poprawki nie pojawią się na CRANie należy zainstalować wersję z githuba: ***
+
+```{r, eval=FALSE}
+# Oczywiscie trzeba miec zainstalowane Rtools (na windowsie)
+# https://cran.r-project.org/bin/windows/Rtools/
+# Uzytkownicy linuxa dadzą radę:)
+library(devtools)
+install_github("hadley/xml2")
+```
+
+Poniżej przykładowy kawałek kodu:
+
+```{r}
+library(xml2)
+
+xmlText = '<?xml version="1.0" encoding="UTF-8"?>
+<model>
+  <!-- Opis xml modelu regresji liniowej -->
+  <coefficients>
+    <coeff name="Intercept" value="20.53" sd="11.01" intercept="true"/>  
+    <coeff name="price" value="30.1" sd="2.06" signif="true"/>  
+  </coefficients>
+  <sd value="5.43"/>
+  <rsqr>0.45</rsqr>
+</model>'
+
+# xml'a można wczytać ze stringa
+xmlFromText = read_xml(xmlText)
+
+# jak rowniez z pliku, xml2 sam zrozumie z czym ma do czynienia
+cat(xmlText, file = "xmlTmp.xml")
+xmlFromFile = read_xml("xmlTmp.xml")
+
+```
+
+Bardzo częstym problemem przy wczytywaniu xmli jest fakt, że nie zawsze są one dobrze sformatowane - na przykład - próba wczytania poniższego xml'a zakończy się błędem:
+
+```{r, error=TRUE}
+xmlTextErr = '<?xml version="1.0" encoding="UTF-8"?>
+<model>
+  <coefficients>
+    <coeff name="Intercept" value="20.53" sd="11.01" intercept="true"/>  
+  </coefficients>
+</model>
+<model>
+  <coefficients>
+    <coeff name="Intercept" value="34.53" sd="13.01" intercept="true"/>  
+  </coefficients>
+</model>
+'
+
+read_xml(xmlTextErr)
+```
+
+Komunikat o błędzie nie jest zbyt jasny, ale parę sekund googlowania pozwoli znaleźć odpowiedź, co jest właściwym powodem błędu - w powyższym dokumencie nie ma korzenia - czyli znacznika obejmującego cały dokument. Poniżej poprawiona wersja (należało dodać $<models>$ na początku i $</models>$ na końcu dokumentu):
+
+```{r}
+xmlTextCor = '<?xml version="1.0" encoding="UTF-8"?>
+<models>
+  <model>
+    <coefficients>
+      <coeff name="Intercept" value="20.53" sd="11.01" intercept="true"/>  
+    </coefficients>
+  </model>
+  <model>
+    <coefficients>
+      <coeff name="Intercept" value="34.53" sd="13.01" intercept="true"/>  
+    </coefficients>
+  </model>
+</models>
+'
+
+read_xml(xmlTextCor)
+```
+
+
+# Podstawowe operacje
+
+By efektywnie korzystać z plików xml należy nauczyć się języka XPaht. Szerszy jego opis z przykładami można znaleźć między innymi na stronie \url{http://www.w3schools.com/xsl/xpath_syntax.asp}. W tym miejscu przedstawione zostanie jedynie podstawowe wyszukiwanie węzłów - jednak składnia XPath jest na tyle prosta, iż poznanie się na tyle by móc z niej efektywnie korzystać jest kwestią kilku minut.
+
+```{r}
+# Jak zawsze dane
+library(xml2)
+xmlText = '<?xml version="1.0" encoding="UTF-8"?>
+<model>
+  <!-- Opis xml modelu regresji liniowej -->
+  <coefficients>
+    <coeff name="Intercept" value="20.53" sd="11.01" intercept="true"/>  
+    <coeff name="price" value="30.1" sd="2.06" signif="true"/>  
+  </coefficients>
+  <sd value="5.43"/>
+  <rsqr>0.45</rsqr>
+</model>'
+xmlAll = read_xml(xmlText)
+```
+
+
+```{r}
+# //nazwa - szukaj w calym drzwie
+xml_find_all(xmlAll, "//coeff")
+
+# /sciezka//nazwa - szukaj w drzewie ponizej sciezki
+xml_find_all(xmlAll, "/model/coefficients//coeff")
+
+# rsqr nie znajduje sie w coefficients wiec nie
+# zostanie znalezione
+xml_find_all(xmlAll, "/model/coefficients//rsqr")
+```
+
+Po pobraniu zestawu węzłów można w zasadzie wykonać dwie główne operacje - pobrać wartość znajdującą się między tagami (przypadek $<tag>wartość</tag>$), lub pobrać wartość atrybutu (przypadek $<tag attr="wartość"/>$).
+
+```{r}
+# wartosc
+rsqr = xml_find_all(xmlAll, "//rsqr")
+xml_text(rsqr)
+
+# atrybut
+coeff = xml_find_all(xmlAll, "//coeff")
+xml_attr(coeff, "value")
+
+# wszystkie atrybuty:
+xml_attrs(coeff)
+```
+
+# Przykłady praktycznego użycia
+
+W przydkładach wykorzystywany jest plik tadeusz.xml, będący rezultatem działania programu TaKIPI 1.8. Plik powinien być w repozytorium w którym znajduje się niniejszy tutorial.
+
+## Chmura tagów z Pana Tadeusza:
+
+W przykładzie używam tylko losowych 2000 słów inaczej chmura dłuugo się liczy.
+
+```{r, tags, message=FALSE, warning=FALSE, cache=TRUE}
+library(wordcloud)
+library(xml2)
+library(magrittr)
+xmlAll   = read_xml("tadeusz.xml")
+
+# znalezienie wszystkich slow i pobranie ich z xml'a
+allWords = xml_find_all(xmlAll, "//orth") %>% xml_text()
+
+# wybranie slow o dlugosci > 3 litery
+allWords = allWords[nchar(allWords) > 3]
+wordcloud(sample(allWords,2000))
+```
+
+## Pobranie wszystkich czasowników:
+
+Pobranie wszystkich czasowników załatwić przy pomocy jednego zapytania xpath (tutaj też objawia się jego potęga):
+
+```{r}
+library(xml2)
+library(magrittr)
+xmlAll   = read_xml("tadeusz.xml")
+praets = xml_find_all(xmlAll, "/root//tok[contains(lex/ctag, 'praet')]/orth")
+xml_text(praets) %>% head
+```
+
+Najważniejszą częścią jest $tok[contains(lex/ctag, 'praet')]$, w którym $contains(lex/ctag, 'praet')$ jest warunkiem logicznym - sprawdzającym czy w węźle $lex/ctag$ znajduje się wartość $'praet'$. Jeżeli jest - wtedy z węzła $tok$ zwracany jest węzeł $orth$ zawierający bazowe słowo.
