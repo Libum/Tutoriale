@@ -4,7 +4,7 @@ output: pdf_document
 author: Zygmunt Zawadzki z.zawadzki@erkakrakow.pl 
 ---
 
-***W razie niejasności (coś nie zostało wytłumaczone wyastarczająco jasno, lub brak jest wystarczającej liczby odniesień do materiałów zewnętrznych, albo pominąłem istotny wątek) proszę pisać na podany wyżej adres e-mail. Postaram się w miarę możliwości wprowadzić potrzebne uzupełnienia (jeżeli ktoś ma ochotę może również coś dopisać - współautorzy mile widziani). Przepraszam za literówki:) ***
+***W razie niejasności (coś nie zostało wytłumaczone wyastarczająco jasno, lub brak jest wystarczającej liczby odniesień do materiałów zewnętrznych, albo pominąłem istotny wątek, ewentualnie masz pomysł na jakiś ciekawy przykład) proszę pisać na podany wyżej adres e-mail, albo wykorzystać GitHuba - \url{https://github.com/eRkaKrakow/Tutoriale/issues}. Postaram się w miarę możliwości wprowadzić potrzebne uzupełnienia (jeżeli ktoś ma ochotę może również coś dopisać, to współautorzy są mile widziani - sława czeka!). Przepraszam za literówki:) ***
 
 # Wprowadzenie
 
@@ -63,7 +63,7 @@ Natomiast rodzic wszystkich rodziców to korzeć (ang. root) - i jako taki może
 </dziadek>
 ```
 
-Próba pracy z xmlem zawierającym wiele korzeni oznacza, że ktoś mógł źle sformatować ów plik, a skutkować to będzie komplikacjami przy użyciu narzędzi do pracy z xmlami (najprawdopodobniej w ogóle nie uda się nam wczytać takiego pliku, ale do tego tematu wrócimy przy wczytywaniu plików xml do R). Poniżej niepoprawnie sformatowany plik xml:
+Próba pracy z xmlem zawierającym wiele korzeni oznacza, że ktoś mógł źle sformatować ów plik, a skutkować to będzie komplikacjami przy użyciu narzędzi do pracy z xmlami. Poniżej niepoprawnie sformatowany plik xml:
 
 ```{r, eval=FALSE}
 <!-- Taki xml jest niepoprawny - są w nim dwa korzenie! -->
@@ -77,8 +77,32 @@ Próba pracy z xmlem zawierającym wiele korzeni oznacza, że ktoś mógł źle 
 </rodzic>
 ```
 
+Dodatkowo każdy element może mieć właśne atrybuty - w powyższych przykładach takim atrybutem był $name$. Jednocześnie elementy o tej samej nazwie wcale nie muszą mieć tych samych atrybutów
 
+```{r, eval=FALSE}
+<!-- W xmlu elementy mogą mieć tę samą nazwę -->
+<!-- ale inne atrubuty!                      -->
+<rodzic name="Judyta">
+  <dziecko name="Jaś"/>  
+  <dziecko name="Małgosia" surname="Iksińska"/>  
+</rodzic>
+```
 
+Z powyższego powodu xml jest bardzo dobrym formatem do trzymania danych o nieregularnej strukturze, które na przykład trudno ująć w tabeli. Równocześnie xml może być przydatny do przygotowywania wszelkiej maści konfigów, czy zapisywania modeli statystycznych (patrz \url{https://en.wikipedia.org/wiki/Predictive_Model_Markup_Language}). Oczywiście są też inne języki znaczników *yaml*, czy *JSON*.
+
+Poszczególne elementy, oprócz atrybutów i dzieci, mogą mieć wartości tekstowe:
+
+```{r, eval=FALSE}
+<!-- Jaś jest w tym przypadku wartością -->
+<dziecko>Jaś</dziecko> 
+```
+
+I na koniec rzecz która powinna być na początku:
+```{r, eval=FALSE}
+<!-- Tak. To jest komentarz w xmlu -->
+```
+
+***I to w zasadzie tyle najważniejszej terminologii xml'a! Pora na przejście do R.***
 
 ## Wczytujemy xml'a do R 
 

@@ -4,6 +4,7 @@
 
 *_cache
 *_files
+xmlTmp.xml
 
 # Example code in package build process
 *-Ex.R
